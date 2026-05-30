@@ -135,3 +135,97 @@ Retorna un vector vacío si dst no es alcanzable.
     end
     return Int[]   # no alcanzable
 end
+# ---------- Casos de prueba ------------------------------
+
+function run_tests()
+    println("=" ^ 60)
+    println("PRUEBAS: Algoritmo de Dijkstra en Julia")
+    println("=" ^ 60)
+
+    # ---- Test 1: Grafo sencillo (no dirigido) -----------
+    println("\n[ Test 1 ] Grafo no dirigido con 5 nodos")
+    println("  Fuente: nodo 1")
+    g1 = Graph(5)
+    add_undirected_edge!(g1, 1, 2, 4.0)
+    add_undirected_edge!(g1, 1, 3, 2.0)
+    add_undirected_edge!(g1, 3, 2, 1.0)
+    add_undirected_edge!(g1, 2, 4, 5.0)
+    add_undirected_edge!(g1, 3, 5, 8.0)
+    add_undirected_edge!(g1, 4, 5, 2.0)
+
+    dist1, prev1 = dijkstra(g1, 1)
+    for v in 1:g1.n
+        camino = reconstruir_camino(prev1, 1, v)
+        println("  1 a $v : dist=$(dist1[v])  camino=$camino")
+    end
+    @assert dist1[4] == 8.0 "Test 1 falló: 1 a 4 debería ser 8.0"
+    @assert dist1[5] == 10.0 "Test 1 falló: 1 a 5 debería ser 10.0"
+    println("Test 1 pasó")
+
+    # ---- Test 2: Grafo dirigido --------------------------
+    println("\n[ Test 2 ] Grafo dirigido con 4 nodos (estilo red de rutas)")
+    println("  Fuente: nodo 1")
+    g2 = Graph(4)
+    add_edge!(g2, 1, 2, 1.0)
+    add_edge!(g2, 1, 3, 4.0)
+    add_edge!(g2, 2, 3, 2.0)
+    add_edge!(g2, 2, 4, 5.0)
+    add_edge!(g2, 3, 4, 1.0)
+
+    dist2, prev2 = dijkstra(g2, 1)
+    for v in 1:g2.n
+        camino = reconstruir_camino(prev2, 1, v) println("  1 a $v : dist=$(dist2[v])  camino=$camino")
+    end
+    @assert dist2[4] == 4.0 "Test 2 falló: 1 a 4 debería ser 4.0"
+    println("Test 2 pasó")
+
+    # ---- Test 3: Nodo aislado (caso borde) --------------
+    println("\n[ Test 3 ] Caso borde: nodo aislado (no alcanzable)")
+    g3 = Graph(3)
+    add_undirected_edge!(g3, 1, 2, 3.0)
+    # nodo 3 no tiene aristas
+
+    dist3, _ = dijkstra(g3, 1)
+    println("  dist[1 a 1]=$(dist3[1])  dist[1 a 2]=$(dist3[2])  dist[1 a 3]=$(dist3[3])")
+    @assert dist3[3] == Inf "Test 3 falló: nodo 3 debería ser Inf"
+    println("Test 3 pasó (Inf correcto para nodo aislado)")
+
+    # ---- Test 4: Grafo con arista de peso 0 (caso borde) -
+    println("\n[ Test 4 ] Caso borde: arista con peso 0.0")
+    g4 = Graph(3)
+    add_undirected_edge!(g4, 1, 2, 0.0)
+    add_undirected_edge!(g4, 2, 3, 5.0)
+
+    dist4, _ = dijkstra(g4, 1)
+    println("  dist[1 a 2]=$(dist4[2])  dist[1 a 3]=$(dist4[3])")
+    @assert dist4[2] == 0.0 "Test 4 falló: peso 0 no manejado"
+    println("Test 4 pasó")
+
+    # ---- Test 5: Grafo grande aleatorio (stress test) ---
+    println("\n[ Test 5 ] Stress test: grafo con 100 nodos, 400 aristas")
+    n5 = 100
+    g5 = Graph(n5)
+    rng_seed = 42
+    # Generamos una cadena garantizando conectividad
+    for i in 1:(n5-1)
+        w = Float64((i * 7 + 3) % 20 + 1)
+        add_undirected_edge!(g5, i, i+1, w)
+    end
+    # Aristas adicionales aleatorias deterministas
+    for i in 1:300
+        u = (i * 13 + 5) % n5 + 1
+        v = (i * 17 + 11) % n5 + 1
+        u != v && add_undirected_edge!(g5, u, v, Float64((i * 3 + 7) % 50 + 1))
+    end
+    dist5, _ = dijkstra(g5, 1)
+    alcanzables = count(d -> d < Inf, dist5)
+    println("  Nodos alcanzables desde 1: $alcanzables / $n5")
+    @assert alcanzables == n5 "Test 5 falló: no todos los nodos son alcanzables"
+    println("Test 5 pasó")
+
+    println("\n" * "=" ^ 60)
+    println("  Todos los tests pasaron exitosamente")
+    println("=" ^ 60)
+end
+
+run_tests()
