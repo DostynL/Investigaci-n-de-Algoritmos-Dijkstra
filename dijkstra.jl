@@ -76,3 +76,62 @@ function _sift_down!(h::MinHeap, i::Int)
         i = smallest
     end
 end
+# ---------- Algoritmo principal --------------------------
+
+"""dijkstra(g, src) -> (dist, prev)
+
+Calcula las distancias mínimas desde el vértice src a todos
+los demás vértices del grafo g usando el algoritmo de Dijkstra.
+
+# Retorna
+- dist::Vector{Float64} — distancia mínima desde src a cada vértice.
+  Inf si el vértice no es alcanzable.
+- prev::Vector{Int}    — nodo previo en el camino óptimo.
+  0 si no hay predecesor (o no alcanzable).
+
+# Complejidad
+- Temporal : O((V + E) log V) con min-heap
+- Espacial  : O(V + E)
+
+# Precondición
+Todos los pesos deben ser ≥ 0. Para grafos con pesos negativos
+usar Bellman-Ford."""
+
+function dijkstra(g::Graph, src::Int)
+    dist = fill(Inf, g.n)
+    prev = fill(0,   g.n)
+    dist[src] = 0.0
+
+    pq = MinHeap()
+    heap_push!(pq, (0.0, src))
+    while !isempty(pq)
+        d, u = heap_pop!(pq)
+        # Nodo ya procesado con distancia menor (entrada obsoleta)
+        d > dist[u] && continue
+        for (v, w) in g.adj[u]
+            nueva_dist = dist[u] + w
+            if nueva_dist < dist[v]
+                dist[v] = nueva_dist
+                prev[v] = u
+                heap_push!(pq, (nueva_dist, v))
+            end
+        end
+    end
+
+    return dist, prev
+end
+"""reconstruir_camino(prev, src, dst) -> Vector{Int}
+
+Reconstruye el camino más corto de src a dst
+a partir del vector prev devuelto por dijkstra.
+Retorna un vector vacío si dst no es alcanzable.
+"""function reconstruir_camino(prev::Vector{Int}, src::Int, dst::Int)::Vector{Int}
+    camino = Int[]
+    node = dst
+    while node != 0
+        pushfirst!(camino, node)
+        node == src && return camino
+        node = prev[node]
+    end
+    return Int[]   # no alcanzable
+end
