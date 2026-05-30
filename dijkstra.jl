@@ -42,14 +42,16 @@ end
 MinHeap() = MinHeap(Vector{Tuple{Float64,Int}}())
 
 function heap_push!(h::MinHeap, item::Tuple{Float64,Int})
-    push!(h.data, item)_sift_up!(h, length(h.data))
+    push!(h.data, item)
+    _sift_up!(h, length(h.data))
 end
 
 function heap_pop!(h::MinHeap)::Tuple{Float64,Int}
     isempty(h.data) && error("Heap vacío")
     result = h.data[1]
     h.data[1] = h.data[end]
-    pop!(h.data) isempty(h.data) || _sift_down!(h, 1)
+    pop!(h.data)
+    isempty(h.data) || _sift_down!(h, 1)
     return result
 end
 
@@ -125,7 +127,8 @@ end
 Reconstruye el camino más corto de src a dst
 a partir del vector prev devuelto por dijkstra.
 Retorna un vector vacío si dst no es alcanzable.
-"""function reconstruir_camino(prev::Vector{Int}, src::Int, dst::Int)::Vector{Int}
+"""
+function reconstruir_camino(prev::Vector{Int}, src::Int, dst::Int)::Vector{Int}
     camino = Int[]
     node = dst
     while node != 0
@@ -174,7 +177,8 @@ function run_tests()
 
     dist2, prev2 = dijkstra(g2, 1)
     for v in 1:g2.n
-        camino = reconstruir_camino(prev2, 1, v) println("  1 a $v : dist=$(dist2[v])  camino=$camino")
+        camino = reconstruir_camino(prev2, 1, v)
+        println("  1 a $v : dist=$(dist2[v])  camino=$camino")
     end
     @assert dist2[4] == 4.0 "Test 2 falló: 1 a 4 debería ser 4.0"
     println("Test 2 pasó")
